@@ -1,0 +1,52 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: cl.exe 建置使用中檔案",
+            "command": "cl.exe",
+            "args": [
+                "/Zi",
+                "/EHsc",
+                "/nologo",
+                "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": "build",
+            "detail": "偵錯工具產生的工作。"
+        },
+        {
+            "type": "shell",
+            "label": "ASEM-51: 組譯目前的 .a51 檔案",
+            "command": "d:\\code\\asem5113\\ASEMW.EXE",
+            "args": [
+                "${fileBasename}"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*)\\$(\\d+),*(\\d*)\\s*:\\s*(error|warning)\\s+(\\d+)\\s*:\\s*(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "code": 5,
+                    "message": 6
+                }
+            },
+            "detail": "使用 ASEM-51 組譯 8051 組合語言，產生 .hex 與 .lst 檔"
+        }
+    ],
+    "version": "2.0.0"
+}
