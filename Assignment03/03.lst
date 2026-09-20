@@ -1,0 +1,186 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	D:\code\Microcomputer_Principles\Assignment03\03.a51
+	Object File:	D:\code\Microcomputer_Principles\Assignment03\03.hex
+	List File:	D:\code\Microcomputer_Principles\Assignment03\03.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;=================================================
+    2:				; 功能:
+    3:				; 按下 SW2 (P1.0) -> P2.0, P2.2, P2.4, P2.6 亮
+    4:				; 按下 SW3 (P1.1) -> P2.1, P2.3, P2.5 亮
+    5:				; 按下 SW4 (P1.2) -> 全暗
+    6:				;=================================================
+    7:
+    8:		N      0000	        ORG     0000H       ; 程式起始位置
+    9:	  0000	02 00 30	        JMP     START       ; 跳轉至主程式初始化
+   10:
+   11:		N      0030	        ORG     0030H       ; 主程式區塊
+   12:	  0030			START:
+   13:	  0030	75 A0 FF	        MOV     P2, #0FFH   ; 初始化，將所有 LED 熄滅 (輸出 1)
+   14:	  0033	75 90 FF	        MOV     P1, #0FFH   ; 設定 P1 為輸入模式 (寫入 1)
+   15:
+   16:	  0036			MAIN_LOOP:
+   17:	  0036	30 90 08	        JNB     P1.0, SW2_ON    ; 若 SW2 (P1.0) 為 0 (按下)，跳轉至 SW2 處理
+   18:	  0039	30 91 10	        JNB     P1.1, SW3_ON    ; 若 SW3 (P1.1) 為 0 (按下)，跳轉至 SW3 處理
+   19:	  003C	30 92 18	        JNB     P1.2, ALL_OFF   ; 若 SW4 (P1.2) 為 0 (按下)，跳轉至全暗處理
+   20:	  003F	80 F5		        JMP     MAIN_LOOP       ; 持續掃描按鍵狀態
+   21:
+   22:	  0041			SW2_ON:
+   23:	  0041	12 00 62	        CALL    DELAY           ; 呼叫防彈跳延遲
+   24:	  0044	30 90 FD	        JNB     P1.0, $         ; 等待按鍵放開 (防止單次按下被重複觸發)
+   25:	  0047	75 A0 AA	        MOV     P2, #0AAH       ; 輸出 10101010B (P2.0, 2.2, 2.4, 2.6 亮)
+   26:	  004A	80 EA		        JMP     MAIN_LOOP       ; 回到主迴圈
+   27:
+   28:	  004C			SW3_ON:
+   29:	  004C	12 00 62	        CALL    DELAY           ; 呼叫防彈跳延遲
+   30:	  004F	30 91 FD	        JNB     P1.1, $         ; 等待按鍵放開
+   31:	  0052	75 A0 D5	        MOV     P2, #0D5H       ; 輸出 11010101B (P2.1, 2.3, 2.5 亮)
+   32:	  0055	80 DF		        JMP     MAIN_LOOP       ; 回到主迴圈
+   33:
+   34:	  0057			ALL_OFF:
+   35:	  0057	12 00 62	        CALL    DELAY           ; 呼叫防彈跳延遲
+   36:	  005A	30 92 FD	        JNB     P1.2, $         ; 等待按鍵放開
+   37:	  005D	75 A0 FF	        MOV     P2, #0FFH       ; 輸出 11111111B (全暗)
+   38:	  0060	80 D4		        JMP     MAIN_LOOP       ; 回到主迴圈
+   39:
+   40:				;=================================================
+   41:				; 副程式: 簡單按鍵防彈跳延遲 (約 10ms - 20ms)
+   42:				;=================================================
+   43:	  0062			DELAY:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0062	7E 14		        MOV     R6, #20
+   45:	  0064	7F FA		D1:     MOV     R7, #250
+   46:	  0066	DF FE		        DJNZ    R7, $           ; 內部小迴圈
+   47:	  0068	DE FA		        DJNZ    R6, D1          ; 外部大迴圈
+   48:	  006A	22		        RET
+   49:
+   50:				        END                     ; 結束程式組譯
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+ALL_OFF				  CODE	    0057	  34
+B				  DATA	      F0
+CY				  BIT	      D7
+D1				  CODE	    0064	  45
+DELAY				  CODE	    0062	  43
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN_LOOP			  CODE	    0036	  16
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0030	  12
+SW2_ON				  CODE	    0041	  22
+SW3_ON				  CODE	    004C	  28
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6
