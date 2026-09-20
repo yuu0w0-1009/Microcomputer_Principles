@@ -24,7 +24,7 @@ schematic drawing tool : Kicad 10.0.6
 
 [8051 assembly highlighting plugin](https://github.com/teccheck/vscode-8051-assembly)
 
-## using the ASEM-51 assembler to assemble the source code :
+## using the ASEM-51 to assemble the source code :
 
 environment : [Makefile(mingw-make v16.2.0)](https://github.com/niXman/mingw-builds-binaries)
 
