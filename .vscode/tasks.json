@@ -1,52 +1,36 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: cl.exe 建置使用中檔案",
-            "command": "cl.exe",
-            "args": [
-                "/Zi",
-                "/EHsc",
-                "/nologo",
-                "/Fe${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "${file}"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$msCompile"
-            ],
-            "group": "build",
-            "detail": "偵錯工具產生的工作。"
-        },
-        {
+            "label": "ASEM-51: 單檔組譯 (Ctrl+Shift+B)",
             "type": "shell",
-            "label": "ASEM-51: 組譯目前的 .a51 檔案",
-            "command": "d:\\code\\asem5113\\ASEMW.EXE",
+            "command": "make",
             "args": [
-                "${fileBasename}"
+                "single",
+                "CURRENT_FILE=\"${file}\""
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": {
-                "pattern": {
-                    "regexp": "^(.*)\\$(\\d+),*(\\d*)\\s*:\\s*(error|warning)\\s+(\\d+)\\s*:\\s*(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "code": 5,
-                    "message": 6
+            "problemMatcher": [
+                {
+                    "owner": "asem51",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": {
+                        "regexp": "^(.*?)\\s+$(\\d+),(\\d+)\\s+$\\s*:\\s*(error|warning|fatal)\\s*:\\s*(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "severity": 4,
+                        "message": 5
+                    }
                 }
-            },
-            "detail": "使用 ASEM-51 組譯 8051 組合語言，產生 .hex 與 .lst 檔"
+            ],
+            "detail": "對目前開啟的 .a51 / .A51 檔呼叫 make single，輸出 hex/lst 到原始檔同目錄。"
         }
-    ],
-    "version": "2.0.0"
+    ]
 }

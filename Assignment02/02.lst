@@ -10,26 +10,46 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
 
 
-	Source File:	D:\code\Microcomputer_Principles\Assignment01\01.a51
-	Object File:	D:\code\Microcomputer_Principles\Assignment01\01.hex
-	List File:	D:\code\Microcomputer_Principles\Assignment01\01.lst
+	Source File:	D:\code\Microcomputer_Principles\Assignment02\02.a51
+	Object File:	D:\code\Microcomputer_Principles\Assignment02\02.hex
+	List File:	D:\code\Microcomputer_Principles\Assignment02\02.lst
 
 
 
  Line  I  Addr  Code            Source
 
-    1:		N      0000	        ORG     0000h
-    2:	  0000	75 A0 00	REPEAT: MOV     P2,#00h
-    3:	  0003	12 00 0E	        LCALL   DELAY
-    4:	  0006	75 A0 FF	        MOV     P2,#0FFh
-    5:	  0009	12 00 0E	        LCALL   DELAY
-    6:	  000C	80 F2		        SJMP    REPEAT
-    7:	  000E	78 FF		DELAY:  MOV      R0,#0FFh
-    8:	  0010	79 FF		L1:     MOV      R1,#0FFh
-    9:	  0012	D9 FE		L2:     DJNZ     R1,L2
-   10:	  0014	D8 FA		        DJNZ     R0,L1
-   11:	  0016	22		        RET
-   12:				        END
+    1:		N      0000	ORG 0000H
+    2:	  0000	02 00 30	        JMP MAIN
+    3:
+    4:		N      0030	        ORG 0030H
+    5:	  0030			MAIN:
+    6:	  0030	75 90 FF	        MOV P1, #0FFH       ; 將 P1 設為輸入模式 (填入 1)
+    7:	  0033	75 A0 FF	        MOV P2, #0FFH       ; 預設將 P2 所有腳位設為高電位 (所有 LED 都不亮)
+    8:
+    9:	  0036			LOOP:
+   10:	  0036	E5 90		        MOV A, P1           ; 讀取 P1 埠 (指撥開關狀態)
+   11:	  0038	F4		        CPL A               ; 將 A 暫存器反相 (讓開關 ON 讀取為 1，OFF 讀取為 0)
+   12:	  0039	54 07		        ANL A, #07H         ; 遮罩高位元，只保留 P1.0~P1.2 的 3 位元數值 (範圍 0~7)
+   13:
+   14:	  003B	90 00 43	        MOV DPTR, #LED_TAB  ; 將資料指標指向 LED 對應表
+   15:	  003E	93		        MOVC A, @A+DPTR     ; 從表格中取出對應的 P2 輸出控制碼
+   16:	  003F	F5 A0		        MOV P2, A           ; 將控制碼輸出到 P2，點亮對應的 LED
+   17:
+   18:	  0041	80 F3		        SJMP LOOP           ; 無窮迴圈，持續偵測
+   19:
+   20:				; --- LED 狀態對應表 ---
+   21:				; 0 代表輸出低電位 (LED亮)，1 代表輸出高電位 (LED暗)
+   22:	  0043			LED_TAB:
+   23:	  0043	FF		        DB 11111111B        ; 數值 0：全暗 (FFH)
+   24:	  0044	FE		        DB 11111110B        ; 數值 1：亮 P2.1 燈 (FDH)
+   25:	  0045	FD		        DB 11111101B        ; 數值 2：亮 P2.2 燈 (FBH)
+   26:	  0046	FB		        DB 11111011B        ; 數值 3：亮 P2.3 燈 (F7H)
+   27:	  0047	F7		        DB 11110111B        ; 數值 4：亮 P2.4 燈 (EFH)
+   28:	  0048	EF		        DB 11101111B        ; 數值 5：亮 P2.5 燈 (DFH)
+   29:	  0049	DF		        DB 11011111B        ; 數值 6：亮 P2.6 燈 (BFH)
+   30:	  004A	BF		        DB 10111111B        ; 數值 7：亮 P2.7 燈 (7FH)
+   31:
+   32:				        END
 
 
 
@@ -60,7 +80,6 @@ AC				  BIT	      D6
 ACC				  DATA	      E0
 B				  DATA	      F0
 CY				  BIT	      D7
-DELAY				  CODE	    000E	   7
 DPH				  DATA	      83
 DPL				  DATA	      82
 EA				  BIT	      AF
@@ -80,8 +99,9 @@ INT1				  BIT	      B3
 IP				  DATA	      B8
 IT0				  BIT	      88
 IT1				  BIT	      8A
-L1				  CODE	    0010	   8
-L2				  CODE	    0012	   9
+LED_TAB				  CODE	    0043	  22
+LOOP				  CODE	    0036	   9
+MAIN				  CODE	    0030	   5
 OV				  BIT	      D2
 P				  BIT	      D0
 P0				  DATA	      80
@@ -98,12 +118,12 @@ PX1				  BIT	      BA
 RB8				  BIT	      9A
 RD				  BIT	      B7
 REN				  BIT	      9C
-REPEAT				  CODE	    0000	   2
 RESET				  CODE	    0000
 RI				  BIT	      98
 RS0				  BIT	      D3
 RS1				  BIT	      D4
 RXD				  BIT	      B0
+SBUF				  DATA	      99
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
 
@@ -111,7 +131,6 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
 SYMBOL				  TYPE     VALUE	LINE
 ------------------------------------------------------------
-SBUF				  DATA	      99
 SCON				  DATA	      98
 SINT				  CODE	    0023
 SM0				  BIT	      9F
