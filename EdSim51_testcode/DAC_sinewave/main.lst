@@ -1,0 +1,193 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	main.a51
+	Object File:	main.hex
+	List File:	main.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG 0000H
+    2:	  0000	02 00 30	JMP MAIN
+    3:
+    4:		N      000B	ORG 000BH           ; Timer 0 中斷向量
+    5:	  000B	02 00 48	JMP T0_ISR
+    6:
+    7:		N      0030	ORG 0030H
+    8:	  0030			MAIN:
+    9:	  0030	D2 87		    SETB P0.7       ; 初始化 DAC WR (P0.7) 為高電位
+   10:	  0032	75 89 01	    MOV TMOD, #01H  ; 設定 Timer 0 為模式 1 (16位元計時器)
+   11:
+   12:				    ; 載入初始值 (產生約 278us 延遲)
+   13:	  0035	75 8C FE	    MOV TH0, #0FEH
+   14:	  0038	75 8A EA	    MOV TL0, #0EAH
+   15:
+   16:	  003B	90 00 61	    MOV DPTR, #SINE_TABLE
+   17:	  003E	78 00		    MOV R0, #0      ; 查表索引初始化
+   18:
+   19:	  0040	D2 AF		    SETB EA         ; 啟用全域中斷
+   20:	  0042	D2 A9		    SETB ET0        ; 啟用 Timer 0 中斷
+   21:	  0044	D2 8C		    SETB TR0        ; 啟動 Timer 0
+   22:
+   23:	  0046			WAIT:
+   24:	  0046	80 FE		    SJMP WAIT       ; 進入無窮迴圈，等待計時器中斷
+   25:
+   26:	  0048			T0_ISR:
+   27:	  0048	C2 8C		    CLR TR0         ; 暫停計時器
+   28:	  004A	75 8C FE	    MOV TH0, #0FEH  ; 重新載入計時值 (FEEAH)
+   29:	  004D	75 8A EA	    MOV TL0, #0EAH
+   30:	  0050	D2 8C		    SETB TR0        ; 重啟計時器
+   31:
+   32:	  0052	E8		    MOV A, R0
+   33:	  0053	93		    MOVC A, @A+DPTR ; 從表格中取出正弦波數值
+   34:	  0054	F5 90		    MOV P1, A       ; 將資料輸出至 P1 (DAC 資料埠)[cite: 2]
+   35:
+   36:	  0056	C2 87		    CLR P0.7        ; 將 P0.7 拉低 (觸發 DAC WR)[cite: 2]
+   37:	  0058	D2 87		    SETB P0.7       ; 將 P0.7 拉高 (完成 DAC 寫入)[cite: 2]
+   38:
+   39:	  005A	08		    INC R0          ; 索引加 1
+   40:	  005B	B8 24 02	    CJNE R0, #36, ISR_END ; 判斷是否完成一個週期 (36個取樣點)
+   41:	  005E	78 00		    MOV R0, #0      ; 若達 36，將索引歸零開始下一個週期
+   42:
+   43:	  0060			ISR_END:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0060	32		    RETI
+   45:
+   46:				; 36 個取樣點的正弦波查表 (0~255)
+   47:	  0061			SINE_TABLE:
+   48:	  0061	80 96 AB C0	    DB 128, 150, 171, 192, 210, 225, 238, 247, 253, 255
+	  0065	D2 E1 EE F7
+	  0069	FD FF
+   49:	  006B	FD F7 EE E1	    DB 253, 247, 238, 225, 210, 192, 171, 150, 128, 106
+	  006F	D2 C0 AB 96
+	  0073	80 6A
+   50:	  0075	55 40 2E 1F	    DB 85, 64, 46, 31, 18, 9, 3, 0, 3, 9
+	  0079	12 09 03 00
+	  007D	03 09
+   51:	  007F	12 1F 2E 40	    DB 18, 31, 46, 64, 85, 106
+	  0083	55 6A
+   52:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+ISR_END				  CODE	    0060	  43
+IT0				  BIT	      88
+IT1				  BIT	      8A
+MAIN				  CODE	    0030	   8
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+SINE_TABLE			  CODE	    0061	  47
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T0_ISR				  CODE	    0048	  26
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WAIT				  CODE	    0046	  23
+WR				  BIT	      B6
