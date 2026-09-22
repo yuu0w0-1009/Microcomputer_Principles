@@ -20,8 +20,6 @@ Programmer step : erase -> blank -> program -> verify -> protect
 
 schematic drawing tool : Kicad 10.0.6
 
-[component library by Chin-Shiuh Shieh](https://bit.kuas.edu.tw/~8051/csshieh.clf)
-
 [8051 assembly highlighting plugin](https://github.com/teccheck/vscode-8051-assembly)
 
 Simulator : [EdSim51DI](https://edsim51.com/)
