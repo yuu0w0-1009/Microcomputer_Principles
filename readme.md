@@ -26,12 +26,6 @@ schematic drawing tool : Kicad 10.0.6
 
 ## using the ASEM-51 to assemble the source code :
 
-environment : [Makefile(mingw-make v16.2.0)](https://github.com/niXman/mingw-builds-binaries)
+vscode : [tasks.json](https://github.com/yuu0w0-1009/Microcomputer_Principles/blob/main/.vscode/tasks.json)
 
-MinGW architecture : 64bit
-
-MinGW thread model : posix
-
-MinGW C runtime : msvcrt
-
-Makefile references : [github](https://github.com/Sematre/8051-vs)
+references : [github](https://github.com/Sematre/8051-vs)
