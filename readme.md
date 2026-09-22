@@ -28,4 +28,4 @@ schematic drawing tool : Kicad 10.0.6
 
 vscode : [tasks.json](https://github.com/yuu0w0-1009/Microcomputer_Principles/blob/main/.vscode/tasks.json)
 
-references : [github](https://github.com/Sematre/8051-vs)
+references : [github_8051-vs by Sematre](https://github.com/Sematre/8051-vs)
