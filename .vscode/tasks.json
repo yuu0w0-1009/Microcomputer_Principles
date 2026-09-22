@@ -2,35 +2,25 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "ASEM-51: 單檔組譯 (Ctrl+Shift+B)",
-            "type": "shell",
-            "command": "make",
+            "label": "Build 8051 Assembly",
+            "type": "process",
+            "command": "${workspaceFolder}/asem5113/asemw.exe",
             "args": [
-                "single",
-                "CURRENT_FILE=\"${file}\""
+                "${fileBasename}"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${fileDirname}"
             },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": [
-                {
-                    "owner": "asem51",
-                    "fileLocation": ["relative", "${workspaceFolder}"],
-                    "pattern": {
-                        "regexp": "^(.*?)\\s+$(\\d+),(\\d+)\\s+$\\s*:\\s*(error|warning|fatal)\\s*:\\s*(.*)$",
-                        "file": 1,
-                        "line": 2,
-                        "column": 3,
-                        "severity": 4,
-                        "message": 5
-                    }
-                }
-            ],
-            "detail": "對目前開啟的 .a51 / .A51 檔呼叫 make single，輸出 hex/lst 到原始檔同目錄。"
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            },
+            "problemMatcher": []
         }
     ]
 }
