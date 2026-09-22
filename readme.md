@@ -24,6 +24,8 @@ schematic drawing tool : Kicad 10.0.6
 
 [8051 assembly highlighting plugin](https://github.com/teccheck/vscode-8051-assembly)
 
+Simulator : [EdSim51DI](https://edsim51.com/)
+
 ## using the ASEM-51 to assemble the source code :
 
 vscode : [tasks.json](https://github.com/yuu0w0-1009/Microcomputer_Principles/blob/main/.vscode/tasks.json)
