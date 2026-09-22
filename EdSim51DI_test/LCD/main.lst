@@ -1,0 +1,272 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	main.a51
+	Object File:	main.hex
+	List File:	main.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; 定義 LCD 控制腳位
+    2:		B      0093	RS EQU P1.3
+    3:		B      0092	EN EQU P1.2
+    4:
+    5:		N      0000	ORG 0000H
+    6:	  0000	02 00 03	JMP MAIN
+    7:
+    8:	  0003			MAIN:
+    9:				    ;初始化 LCD
+   10:	  0003	12 00 17	    CALL LCD_INIT
+   11:
+   12:				    ;顯示字元 'L'
+   13:	  0006	74 4C		    MOV A, #'L'
+   14:	  0008	12 00 53	    CALL LCD_DATA
+   15:
+   16:				    ;顯示字元 'C'
+   17:	  000B	74 43		    MOV A, #'C'
+   18:	  000D	12 00 53	    CALL LCD_DATA
+   19:
+   20:				    ;顯示字元 'D'
+   21:	  0010	74 44		    MOV A, #'D'
+   22:	  0012	12 00 53	    CALL LCD_DATA
+   23:
+   24:	  0015			STOP:
+   25:	  0015	80 FE		    SJMP STOP       ; 程式停留在此
+   26:
+   27:				; ==========================================
+   28:				; LCD 初始化副程式 (4-bit mode)
+   29:				; ==========================================
+   30:	  0017			LCD_INIT:
+   31:				    ; 必須先送出 0x20 將 LCD 切換到 4 位元模式
+   32:	  0017	74 20		    MOV A, #20H
+   33:	  0019	12 00 34	    CALL LCD_CMD_NIBBLE
+   34:	  001C	12 00 75	    CALL DELAY
+   35:
+   36:				    ; 設定為 4-bit 模式, 2 行顯示 (N=1), 5x8 字型 (F=0) -> 指令 28H
+   37:	  001F	74 28		    MOV A, #28H
+   38:	  0021	12 00 3C	    CALL LCD_CMD
+   39:
+   40:				    ; 顯示開啟, 游標開啟, 游標閃爍關閉 -> 指令 0EH
+   41:	  0024	74 0E		    MOV A, #0EH
+   42:	  0026	12 00 3C	    CALL LCD_CMD
+   43:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:				    ; 清除顯示 -> 指令 01H
+   45:	  0029	74 01		    MOV A, #01H
+   46:	  002B	12 00 3C	    CALL LCD_CMD
+   47:
+   48:				    ; 設定進入模式 (自動遞增) -> 指令 06H
+   49:	  002E	74 06		    MOV A, #06H
+   50:	  0030	12 00 3C	    CALL LCD_CMD
+   51:	  0033	22		    RET
+   52:
+   53:				; ==========================================
+   54:				; 送出單一 Nibble (用於初次設定 4-bit 模式)
+   55:				; ==========================================
+   56:	  0034			LCD_CMD_NIBBLE:
+   57:	  0034	54 F0		    ANL A, #0F0H    ; 只保留高四位元，同時將 RS (Bit 3) 設為 0
+   58:	  0036	F5 90		    MOV P1, A       ; 將資料輸出至 P1
+   59:	  0038	12 00 6E	    CALL PULSE_EN
+   60:	  003B	22		    RET
+   61:
+   62:				; ==========================================
+   63:				; 送出指令到 LCD (RS=0)
+   64:				; ==========================================
+   65:	  003C			LCD_CMD:
+   66:	  003C	C0 E0		    PUSH ACC
+   67:				    ; 送出高四位元
+   68:	  003E	54 F0		    ANL A, #0F0H    ; 保留高四位元，清除低四位元 (RS=0)
+   69:	  0040	F5 90		    MOV P1, A
+   70:	  0042	12 00 6E	    CALL PULSE_EN
+   71:
+   72:				    ; 送出低四位元
+   73:	  0045	D0 E0		    POP ACC
+   74:	  0047	C4		    SWAP A          ; 上下四位元互換
+   75:	  0048	54 F0		    ANL A, #0F0H    ; 保留原本的低四位元，清除低四位元 (RS=0)
+   76:	  004A	F5 90		    MOV P1, A
+   77:	  004C	12 00 6E	    CALL PULSE_EN
+   78:
+   79:	  004F	12 00 75	    CALL DELAY      ; 等待 LCD 處理指令
+   80:	  0052	22		    RET
+   81:
+   82:				; ==========================================
+   83:				; 送出資料到 LCD (RS=1)
+   84:				; ==========================================
+   85:	  0053			LCD_DATA:
+   86:	  0053	C0 E0		    PUSH ACC
+   87:				    ; 送出高四位元
+   88:	  0055	54 F0		    ANL A, #0F0H    ; 保留高四位元
+   89:	  0057	44 08		    ORL A, #00001000B ; 將 RS (P1.3) 設為 1 (表示傳送資料)
+   90:	  0059	F5 90		    MOV P1, A
+   91:	  005B	12 00 6E	    CALL PULSE_EN
+   92:
+   93:				    ; 送出低四位元
+   94:	  005E	D0 E0		    POP ACC
+   95:	  0060	C4		    SWAP A          ; 上下四位元互換
+   96:	  0061	54 F0		    ANL A, #0F0H
+   97:	  0063	44 08		    ORL A, #00001000B ; 將 RS (P1.3) 設為 1
+   98:	  0065	F5 90		    MOV P1, A
+   99:	  0067	12 00 6E	    CALL PULSE_EN
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:
+  101:	  006A	12 00 75	    CALL DELAY      ; 等待 LCD 處理
+  102:	  006D	22		    RET
+  103:
+  104:				; ==========================================
+  105:				; 產生 Enable 脈衝信號 (High -> Low)
+  106:				; ==========================================
+  107:	  006E			PULSE_EN:
+  108:	  006E	D2 92		    SETB EN         ; EN = 1
+  109:	  0070	00		    NOP
+  110:	  0071	00		    NOP
+  111:	  0072	C2 92		    CLR EN          ; EN = 0
+  112:	  0074	22		    RET
+  113:
+  114:				; ==========================================
+  115:				; 延遲副程式
+  116:				; ==========================================
+  117:	  0075			DELAY:
+  118:	  0075	7A 32		    MOV R2, #50
+  119:	  0077	7B FF		D1: MOV R3, #255
+  120:	  0079	DB FE		D2: DJNZ R3, D2
+  121:	  007B	DA FA		    DJNZ R2, D1
+  122:	  007D	22		    RET
+  123:
+  124:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+D1				  CODE	    0077	 119
+D2				  CODE	    0079	 120
+DELAY				  CODE	    0075	 117
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+EN				  NUMBER    0092	   3
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LCD_CMD				  CODE	    003C	  65
+LCD_CMD_NIBBLE			  CODE	    0034	  56
+LCD_DATA			  CODE	    0053	  85
+LCD_INIT			  CODE	    0017	  30
+MAIN				  CODE	    0003	   8
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PULSE_EN			  CODE	    006E	 107
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS				  NUMBER    0093	   2
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+STOP				  CODE	    0015	  24
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6
