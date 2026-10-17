@@ -1,0 +1,232 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	06.a51
+	Object File:	06.hex
+	List File:	06.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; Example program 04: 7-Segment LED scanned by Time 0
+    2:				; Chin-Shiuh Shieh
+    3:				; 2003-03-09
+    4:				;
+    5:				; Memory Allocation
+    6:		N      0030	LED_DATA   		EQU		30h     ;Data Byte to be displayed
+    7:		N      0000	NIBBLE  		EQU		00h     ;Bit for Nibble Control
+    8:				; Pin Assignment
+    9:		D      0080	LED_PORT		EQU		P0
+   10:		B      00A1	HIGH_NIBBLE		EQU		P2.1
+   11:		B      00A0	LOW_NIBBLE		EQU		P2.0
+   12:		B      0090	BUTTON			EQU		P1.0
+   13:				;
+   14:		N      0000	PROG	EQU		0000h
+   15:		N      0000			ORG		PROG+0000h
+   16:	  0000	80 2E				SJMP	START
+   17:				;Interrupt Vector Table
+   18:		N      0003			ORG		PROG+0003h
+   19:	  0003	12 00 46			LCALL	INT0_ISR
+   20:	  0006	32				RETI
+   21:		N      000B			ORG		PROG+000Bh
+   22:	  000B	12 00 47			LCALL	T0_ISR
+   23:	  000E	32				RETI
+   24:		N      0013			ORG		PROG+0013h
+   25:	  0013	12 00 81			LCALL	INT1_ISR
+   26:	  0016	32				RETI
+   27:		N      001B			ORG		PROG+001Bh
+   28:	  001B	12 00 82			LCALL	T1_ISR
+   29:	  001E	32				RETI
+   30:		N      0023			ORG		PROG+0023h
+   31:	  0023	12 00 83			LCALL	UART_ISR
+   32:	  0026	32				RETI
+   33:				;
+   34:		N      0030			ORG		PROG+0030h
+   35:	  0030			START:
+   36:	  0030	75 30 00			MOV		LED_DATA,#00h
+   37:	  0033	75 89 11	        MOV     TMOD,#00010001b	; Set Timer to work in Mode 1 (16-bit Timer)
+   38:	  0036	D2 A9		        SETB	ET0				; Enable Timer 0 Interrupt
+   39:	  0038	D2 AF		        SETB	EA				; Enable Interrupt
+   40:	  003A	D2 8C		        SETB	TR0				; Start Timer 0
+   41:	  003C			CHECK_BUTTON:
+   42:	  003C	20 90 FD			JB		BUTTON,CHECK_BUTTON
+   43:	  003F	05 30				INC		LED_DATA
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0041			WAIT_BUTTON_RELEASE:
+   45:	  0041	30 90 FD			JNB		BUTTON,WAIT_BUTTON_RELEASE
+   46:	  0044	80 F6				SJMP	CHECK_BUTTON
+   47:				;
+   48:	  0046			INT0_ISR:
+   49:	  0046	22				RET
+   50:	  0047			T0_ISR:
+   51:	  0047	75 8C FC	        MOV     TH0,#0FCh   ; Timer 0 Interrupt will be generated
+   52:	  004A	75 8A 18	        MOV     TL0,#018h   ; for every 1mS
+   53:	  004D	B2 00		        CPL     NIBBLE
+   54:	  004F	20 00 0F	        JB      NIBBLE,SHOW_HIGH
+   55:	  0052			SHOW_LOW:
+   56:	  0052	D2 A1		        SETB    HIGH_NIBBLE
+   57:	  0054	E5 30		        MOV     A,LED_DATA
+   58:	  0056	54 0F		        ANL     A,#0Fh
+   59:	  0058	90 00 71	        MOV     DPTR,#FONT
+   60:	  005B	93		        MOVC    A,@A+DPTR
+   61:	  005C	F5 80		        MOV     LED_PORT,A
+   62:	  005E	C2 A0		        CLR     LOW_NIBBLE
+   63:	  0060	22		        RET
+   64:	  0061			SHOW_HIGH:
+   65:	  0061	D2 A0		        SETB    LOW_NIBBLE
+   66:	  0063	E5 30		        MOV     A,LED_DATA
+   67:	  0065	C4		        SWAP    A
+   68:	  0066	54 0F		        ANL     A,#0Fh
+   69:	  0068	90 00 71	        MOV     DPTR,#FONT
+   70:	  006B	93		        MOVC    A,@A+DPTR
+   71:	  006C	F5 80		        MOV     LED_PORT,A
+   72:	  006E	C2 A1		        CLR     HIGH_NIBBLE
+   73:	  0070	22		        RET
+   74:	  0071	C0 F9 A4 B0	FONT:   DB      0C0h,0F9h,0A4h,0B0h,099h,092h,082h,0F8h
+	  0075	99 92 82 F8
+   75:	  0079	80 90 88 83	        DB      080h,090h,088h,083h,0A7h,0A1h,086h,08Eh
+	  007D	A7 A1 86 8E
+   76:	  0081			INT1_ISR:
+   77:	  0081	22				RET
+   78:	  0082			T1_ISR:
+   79:	  0082	22				RET
+   80:	  0083			UART_ISR:
+   81:	  0083	22				RET
+   82:				;
+   83:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+BUTTON				  NUMBER    0090	  12
+CHECK_BUTTON			  CODE	    003C	  41
+CY				  BIT	      D7
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FONT				  CODE	    0071	  74
+HIGH_NIBBLE			  NUMBER    00A1	  10
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT0_ISR			  CODE	    0046	  48
+INT1				  BIT	      B3
+INT1_ISR			  CODE	    0081	  76
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LED_DATA			  NUMBER    0030	   6
+LED_PORT			  NUMBER    0080	   9
+LOW_NIBBLE			  NUMBER    00A0	  11
+NIBBLE				  NUMBER    0000	   7
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PROG				  NUMBER    0000	  14
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SHOW_HIGH			  CODE	    0061	  64
+SHOW_LOW			  CODE	    0052	  55
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0030	  35
+T0				  BIT	      B4
+T0_ISR				  CODE	    0047	  50
+T1				  BIT	      B5
+T1_ISR				  CODE	    0082	  78
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UART_ISR			  CODE	    0083	  80
+WAIT_BUTTON_RELEASE		  CODE	    0041	  44
+WR				  BIT	      B6
