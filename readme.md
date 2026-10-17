@@ -14,7 +14,7 @@ IDE : Visual Studio Code
 
 Assembler : ASEM-51 v1.3
 
-Programmer : [偉納電子SP200SE](http://bit.nkust.edu.tw/~csshieh/misc/SP200SE.zip)
+Programmer : [偉納電子SP200SE](http://bit.nkust.edu.tw/~csshieh/misc/SP200SE.zip)/[progisp1.72](https://github.com/gen-so/PROGISP-V1.72)
 
 Programmer step : erase -> blank -> program -> verify -> protect
 
