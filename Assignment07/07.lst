@@ -1,0 +1,245 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	07.a51
+	Object File:	07.hex
+	List File:	07.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				; ========================================================
+    2:				; 專案名稱: 8051 雙向串列傳輸與 LED 控制
+    3:				; 晶振頻率: 11.0592 MHz
+    4:				; 鮑率設定: 9600 bps (Mode 1, 8-N-1)
+    5:				; 功能說明: 按下 P1.0 發送訊號；接收訊號切換 P2.7 LED 狀態 (預設點亮)
+    6:				; ========================================================
+    7:
+    8:				; 定義接腳與變數
+    9:		B	 A7	LED_PIN     BIT P2.7        ; LED 控制接腳
+   10:		B	 90	BTN_PIN     BIT P1.0        ; 按鈕輸入接腳
+   11:		B	 00	TX_BUSY     BIT 20H.0       ; 串列傳送忙碌旗標 (內部 RAM 位元區)
+   12:
+   13:				; --------------------------------------------------------
+   14:				; 中斷向量區
+   15:				; --------------------------------------------------------
+   16:		N      0000	        ORG     0000H       ; 重置向量
+   17:	  0000	02 00 30	        LJMP    START
+   18:
+   19:		N      0023	        ORG     0023H       ; 串列埠 (UART) 中斷向量
+   20:	  0023	02 00 62	        LJMP    UART_ISR
+   21:
+   22:				; --------------------------------------------------------
+   23:				; 主程式起始
+   24:				; --------------------------------------------------------
+   25:		N      0030	        ORG     0030H
+   26:	  0030			START:
+   27:	  0030	75 81 5F	        MOV     SP, #5FH            ; 初始化堆疊指標
+   28:
+   29:				        ; 1. 初始化 I/O 接腳與狀態
+   30:	  0033	D2 90		        SETB    BTN_PIN             ; 將 P1.0 設為輸入模式 (準雙向埠先寫 1)
+   31:	  0035	C2 A7		        CLR     LED_PIN             ; P2.7 輸出 0，LED 預設點亮 (低電位導通)
+   32:	  0037	C2 00		        CLR     TX_BUSY             ; 清除傳送忙碌旗標
+   33:
+   34:				        ; 2. 設定 Timer 1 產生 9600 鮑率 (晶振 11.0592MHz)
+   35:	  0039	75 89 20	        MOV     TMOD, #20H          ; Timer 1 設定為模式 2 (8 位元自動重載)
+   36:	  003C	75 8D FD	        MOV     TH1, #0FDH          ; 鮑率 9600 對應重載值 (256 - 3 = 253 = 0FDH)
+   37:	  003F	75 8B FD	        MOV     TL1, #0FDH
+   38:	  0042	D2 8E		        SETB    TR1                 ; 啟動 Timer 1
+   39:
+   40:				        ; 3. 設定串列通訊模式
+   41:	  0044	75 98 50	        MOV     SCON, #50H          ; 模式 1 (8 位元 UART)，致能接收 (REN = 1)
+   42:
+   43:				        ; 4. 致能中斷
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0047	D2 AC		        SETB    ES                  ; 開啟串列埠中斷
+   45:	  0049	D2 AF		        SETB    EA                  ; 開啟全域中斷
+   46:
+   47:				; --------------------------------------------------------
+   48:				; 主迴圈：按鈕掃描與發送處理
+   49:				; --------------------------------------------------------
+   50:	  004B			MAIN_LOOP:
+   51:	  004B	20 90 FD	        JB      BTN_PIN, MAIN_LOOP  ; 若 P1.0 = 1 (未按下)，持續偵測
+   52:	  004E	11 71		        ACALL   DELAY_20MS          ; 軟體消除彈跳
+   53:	  0050	20 90 F8	        JB      BTN_PIN, MAIN_LOOP  ; 再次確認，若為雜訊則跳回
+   54:
+   55:				        ; 確認按鈕按下，送出控制訊號
+   56:	  0053	D2 00		        SETB    TX_BUSY             ; 標記傳送中
+   57:	  0055	75 99 55	        MOV     SBUF, #55H          ; 發送資料 (任意數值均可，此處以 0x55 為觸發代
+				碼)
+   58:	  0058			WAIT_TX:
+   59:	  0058	20 00 FD	        JB      TX_BUSY, WAIT_TX    ; 等待傳送完成中斷清除旗標
+   60:
+   61:				        ; 等待按鈕放開，避免重複發送
+   62:	  005B			WAIT_RELEASE:
+   63:	  005B	30 90 FD	        JNB     BTN_PIN, WAIT_RELEASE ; 若 P1.0 仍為 0，持續等待放開
+   64:	  005E	11 71		        ACALL   DELAY_20MS          ; 放開消除彈跳
+   65:	  0060	80 E9		        SJMP    MAIN_LOOP
+   66:
+   67:				; --------------------------------------------------------
+   68:				; 串列埠中斷服務常式 (UART ISR)
+   69:				; --------------------------------------------------------
+   70:	  0062			UART_ISR:
+   71:				        ; 檢查是否為「接收中斷」
+   72:	  0062	30 98 04	        JNB     RI, CHECK_TI
+   73:	  0065	C2 98		        CLR     RI                  ; 清除接收旗標
+   74:	  0067	B2 A7		        CPL     LED_PIN             ; 反轉 P2.7 狀態 (切換 LED 亮 / 滅)
+   75:
+   76:	  0069			CHECK_TI:
+   77:				        ; 檢查是否為「傳送中斷」
+   78:	  0069	30 99 04	        JNB     TI, EXIT_ISR
+   79:	  006C	C2 99		        CLR     TI                  ; 清除傳送旗標
+   80:	  006E	C2 00		        CLR     TX_BUSY             ; 清除忙碌旗標，通知主迴圈傳送完成
+   81:
+   82:	  0070			EXIT_ISR:
+   83:	  0070	32		        RETI
+   84:
+   85:				; --------------------------------------------------------
+   86:				; 延遲子程式 (約 20 ms @ 11.0592 MHz)
+   87:				; --------------------------------------------------------
+   88:	  0071			DELAY_20MS:
+   89:	  0071	7E 28		        MOV     R6, #40
+   90:	  0073			D1:
+   91:	  0073	7F FA		        MOV     R7, #250
+   92:	  0075			D2:
+   93:	  0075	DF FE		        DJNZ    R7, D2
+   94:	  0077	DE FA		        DJNZ    R6, D1
+   95:	  0079	22		        RET
+   96:
+   97:				        END
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+BTN_PIN				  BIT	      90	  10
+CHECK_TI			  CODE	    0069	  76
+CY				  BIT	      D7
+D1				  CODE	    0073	  90
+D2				  CODE	    0075	  92
+DELAY_20MS			  CODE	    0071	  88
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXIT_ISR			  CODE	    0070	  82
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LED_PIN				  BIT	      A7	   9
+MAIN_LOOP			  CODE	    004B	  50
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0030	  26
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+TX_BUSY				  BIT	      00	  11
+UART_ISR			  CODE	    0062	  70
+WAIT_RELEASE			  CODE	    005B	  62
+WAIT_TX				  CODE	    0058	  58
+WR				  BIT	      B6
