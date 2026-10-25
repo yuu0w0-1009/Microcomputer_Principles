@@ -2,24 +2,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build 8051 Assembly",
-            "type": "process",
-            "command": "${workspaceFolder}/asem5113/asemw.exe",
-            "args": [
-                "${fileBasename}"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            },
+            "label": "Build 8051",
+            "type": "shell",
+            "command": "$f='${fileBasename}'; if($f -like '*.a51'){ $a=Join-Path '${workspaceFolder}' 'asem5113\\asemw.exe'; if(-not (Test-Path $a)){Write-Error ('ASEM-51 not found: '+$a); exit 1}; & $a $f; exit $LASTEXITCODE }; $sdcc=(Get-Command sdcc.exe -EA SilentlyContinue).Source; if(-not $sdcc -and $env:SDCC_HOME){$sdcc=Join-Path $env:SDCC_HOME 'bin\\sdcc.exe'}; if(-not $sdcc -or -not (Test-Path $sdcc)){$sdcc='C:\\Program Files\\SDCC\\bin\\sdcc.exe'}; if(-not (Test-Path $sdcc)){Write-Error 'SDCC not found: add its bin folder to PATH or set SDCC_HOME'; exit 1}; $bin=Split-Path $sdcc; $env:PATH=$bin+';'+$env:PATH; & $sdcc -mmcs51 --model-small $f; if($LASTEXITCODE -eq 0){ & (Join-Path $bin 'packihx.exe') '${fileBasenameNoExtension}.ihx' | Set-Content -Encoding ascii '${fileBasenameNoExtension}.hex' }; exit $LASTEXITCODE",
+            "options": { "cwd": "${fileDirname}" },
+            "group": { "kind": "build", "isDefault": true },
+            "presentation": { "reveal": "always", "panel": "shared", "clear": true },
             "problemMatcher": []
         }
     ]

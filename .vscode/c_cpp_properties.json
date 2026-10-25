@@ -1,0 +1,35 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "8051 (SDCC)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${env:ProgramFiles}/SDCC/include",
+                "${env:ProgramFiles}/SDCC/include/mcs51",
+                "${env:SDCC_HOME}/include",
+                "${env:SDCC_HOME}/include/mcs51"
+            ],
+            "defines": [
+                "__sfr=char",
+                "__sbit=char",
+                "__bit=char",
+                "__at(x)=",
+                "__interrupt(x)=",
+                "__using(x)=",
+                "__wparam=",
+                "__naked=",
+                "__reentrant=",
+                "__critical=",
+                "__code=const",
+                "__data=",
+                "__idata=",
+                "__xdata=",
+                "__pdata="
+            ],
+            "cStandard": "c11",
+            "intelliSenseMode": "windows-gcc-x64",
+            "compilerPath": ""
+        }
+    ]
+}
