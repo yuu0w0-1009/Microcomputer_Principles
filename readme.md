@@ -12,7 +12,7 @@ Burner : SP200SE
 
 IDE : Visual Studio Code
 
-Assembler : ASEM-51 v1.3
+Assembler : [ASEM-51 v1.3](https://plit.de/asem-51/home.htm) / [SDCC](https://sdcc.sf.net/)
 
 Programmer : [偉納電子SP200SE](http://bit.nkust.edu.tw/~csshieh/misc/SP200SE.zip)/[progisp1.72](https://github.com/gen-so/PROGISP-V1.72)
 
